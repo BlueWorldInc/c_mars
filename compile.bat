@@ -1,0 +1,3 @@
+@echo off
+echo Compiling...
+gcc -O0 -L lib -I include .\src\mars.c ./lib/sdl_circle.c -o mars -lmingw32 -lSDL2main -lSDL2  && powershell write-host -fore Green Compile success && .\mars.exe
