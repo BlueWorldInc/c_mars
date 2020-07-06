@@ -1,0 +1,6 @@
+gravity and moving object is kind of a complex topic.
+one important aspect is to decouple the moving object "speed" and the frame rate.
+If we change the frame rate from 30 to 60 fps the object speed need to be the same.
+For this it need to be an in game time.
+
+Another problem is the move in pixel with different resolution.

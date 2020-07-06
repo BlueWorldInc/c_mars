@@ -1,5 +1,7 @@
 #include <mars.h>
 
+
+
 int main(int argc, char *argv[])
 {
 
@@ -12,6 +14,9 @@ int main(int argc, char *argv[])
     bool init_error = false;
     SDL_bool run = SDL_TRUE;
     srand(time(NULL));
+    int actualTime;
+    int lastTime;
+    int elapsedTime;
 
     if (0 != SDL_Init(SDL_INIT_VIDEO))
     {
@@ -46,14 +51,29 @@ int main(int argc, char *argv[])
     if (!init_error)
     {
 
+        Rocket* rocket = NULL;
+        rocket = malloc(sizeof(*rocket));
+        (*rocket).x = SCREEN_WIDTH / 2;
+        (*rocket).y = SCREEN_HEIGHT / 2;
+        (*rocket).radius = 30;
+        (*rocket).verticalSpeed = + 2.0;
+        (*rocket).heigth = 90;
 
+        actualTime = SDL_GetTicks();
+        lastTime = actualTime;
         while (run) {
             SDL_Event event;
             SDL_PollEvent(&event);
 
-            // drawWorld(renderer, rocket);
+            actualTime = SDL_GetTicks();
+            elapsedTime = actualTime - lastTime;
+            if (elapsedTime > FRAME_DELAY) {
+                drawWorld(renderer, rocket, elapsedTime);
+                lastTime = actualTime;
+            } else {
+                SDL_Delay(FRAME_DELAY - elapsedTime);
+            }
 
-            SDL_Delay(10);
             switch (event.type) {
                 case SDL_KEYDOWN:
                     run = SDL_FALSE;
@@ -68,7 +88,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void drawWorld(SDL_Renderer *renderer, Cycle* cycle) {
+void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
     SDL_Color black = {0, 0, 0, 255};
     SDL_Color white = {255, 255, 255, 255};
 
@@ -80,11 +100,32 @@ void drawWorld(SDL_Renderer *renderer, Cycle* cycle) {
     // draw ground
     SDL_RenderDrawLine(renderer, 0, GROUND_Y, SCREEN_WIDTH, GROUND_Y);
     
-    drawCycle(renderer, cycle);
-    drawRock(renderer, cycle);
+    drawRocket(renderer, rocket);
+    moveRocket(rocket, elapsedTime);
     SDL_RenderPresent(renderer);
 }
 
 void drawRocket(SDL_Renderer* renderer, Rocket* rocket) {
+    SDL_Ellipse(renderer, (*rocket).x, (*rocket).y, (*rocket).radius, (*rocket).radius);
+    // legs
+    SDL_RenderDrawLine(renderer, (*rocket).x - 10, (*rocket).y + 30, (*rocket).x - 30, (*rocket).y + 50);
+    SDL_RenderDrawLine(renderer, (*rocket).x + 10, (*rocket).y + 30, (*rocket).x + 30, (*rocket).y + 50);
+
+    SDL_RenderDrawLine(renderer, (*rocket).x - 30, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 60);
+    SDL_RenderDrawLine(renderer, (*rocket).x + 30, (*rocket).y + 50, (*rocket).x + 30, (*rocket).y + 60);
+    
+    SDL_RenderDrawLine(renderer, (*rocket).x + 30, (*rocket).y + 60, (*rocket).x + 50, (*rocket).y + 60);
+    SDL_RenderDrawLine(renderer, (*rocket).x - 30, (*rocket).y + 60, (*rocket).x - 50, (*rocket).y + 60);
+}
+
+void moveRocket(Rocket* rocket, int elapsedTime) {
+    // negative because y axis is from top to bottom.
+    int baseline = (*rocket).y + (*rocket).heigth - (*rocket).radius;
+    baseline -= (*rocket).verticalSpeed;
+    if (baseline < GROUND_Y) {
+        (*rocket).y = baseline - (*rocket).heigth + (*rocket).radius;
+    } else {
+        (*rocket).y = GROUND_Y - (*rocket).heigth + (*rocket).radius;
+    }
 
 }
