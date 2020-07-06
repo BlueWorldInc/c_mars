@@ -19,6 +19,8 @@ struct Rocket {
     int heigth;
     double verticalSpeed;
     double horizontalSpeed;
+    double g;
+    char* state; // can be LANDED, FLYING, CRASHED
 };
 
 void drawWorld(SDL_Renderer *renderer, Rocket* Rocket, int elapsedTime);

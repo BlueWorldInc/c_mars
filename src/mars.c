@@ -56,8 +56,10 @@ int main(int argc, char *argv[])
         (*rocket).x = SCREEN_WIDTH / 2;
         (*rocket).y = SCREEN_HEIGHT / 2;
         (*rocket).radius = 30;
-        (*rocket).verticalSpeed = + 2.0;
+        (*rocket).verticalSpeed = - 2.0;
         (*rocket).heigth = 90;
+        (*rocket).g = -3.711;
+        (*rocket).state = "FLYING";
 
         actualTime = SDL_GetTicks();
         lastTime = actualTime;
@@ -106,25 +108,58 @@ void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
 }
 
 void drawRocket(SDL_Renderer* renderer, Rocket* rocket) {
-    SDL_Ellipse(renderer, (*rocket).x, (*rocket).y, (*rocket).radius, (*rocket).radius);
-    // legs
-    SDL_RenderDrawLine(renderer, (*rocket).x - 10, (*rocket).y + 30, (*rocket).x - 30, (*rocket).y + 50);
-    SDL_RenderDrawLine(renderer, (*rocket).x + 10, (*rocket).y + 30, (*rocket).x + 30, (*rocket).y + 50);
+    if (strcmp((*rocket).state, "FLYING") == 0) {
+        SDL_Ellipse(renderer, (*rocket).x, (*rocket).y, (*rocket).radius, (*rocket).radius);
+        // legs
+        SDL_RenderDrawLine(renderer, (*rocket).x - 10, (*rocket).y + 30, (*rocket).x - 30, (*rocket).y + 50);
+        SDL_RenderDrawLine(renderer, (*rocket).x + 10, (*rocket).y + 30, (*rocket).x + 30, (*rocket).y + 50);
 
-    SDL_RenderDrawLine(renderer, (*rocket).x - 30, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 60);
-    SDL_RenderDrawLine(renderer, (*rocket).x + 30, (*rocket).y + 50, (*rocket).x + 30, (*rocket).y + 60);
-    
-    SDL_RenderDrawLine(renderer, (*rocket).x + 30, (*rocket).y + 60, (*rocket).x + 50, (*rocket).y + 60);
-    SDL_RenderDrawLine(renderer, (*rocket).x - 30, (*rocket).y + 60, (*rocket).x - 50, (*rocket).y + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x - 30, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x + 30, (*rocket).y + 50, (*rocket).x + 30, (*rocket).y + 60);
+        
+        SDL_RenderDrawLine(renderer, (*rocket).x + 30, (*rocket).y + 60, (*rocket).x + 50, (*rocket).y + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x - 30, (*rocket).y + 60, (*rocket).x - 50, (*rocket).y + 60);
+    } else if (strcmp((*rocket).state, "LANDED") == 0) {
+        SDL_Ellipse(renderer, (*rocket).x, (*rocket).y, (*rocket).radius, (*rocket).radius);
+        // legs
+        SDL_RenderDrawLine(renderer, (*rocket).x - 10, (*rocket).y + 30, (*rocket).x - 30, (*rocket).y + 50);
+        SDL_RenderDrawLine(renderer, (*rocket).x + 10, (*rocket).y + 30, (*rocket).x + 30, (*rocket).y + 50);
+
+        SDL_RenderDrawLine(renderer, (*rocket).x - 30, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x + 30, (*rocket).y + 50, (*rocket).x + 30, (*rocket).y + 60);
+        
+        SDL_RenderDrawLine(renderer, (*rocket).x + 30, (*rocket).y + 60, (*rocket).x + 50, (*rocket).y + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x - 30, (*rocket).y + 60, (*rocket).x - 50, (*rocket).y + 60);
+
+        // robot
+        SDL_Rect robot_00 = {(*rocket).x - 90, (*rocket).y + 20, 40, 30};
+        SDL_RenderDrawRect(renderer, &robot_00);
+        SDL_Rect robot_01 = {(*rocket).x - 70, (*rocket).y + 10, 10, 10};
+        SDL_RenderDrawRect(renderer, &robot_01);
+        SDL_Rect robot_02 = {(*rocket).x - 80, (*rocket).y + 5, 20, 5};
+        SDL_RenderDrawRect(renderer, &robot_02);
+        SDL_Rect robot_03 = {(*rocket).x - 55, (*rocket).y - 50, 5, 70};
+        SDL_RenderDrawRect(renderer, &robot_03);
+        SDL_Ellipse(renderer, (*rocket).x - 90, (*rocket).y + 50, 10, 10);
+        SDL_Ellipse(renderer, (*rocket).x - 50, (*rocket).y + 50, 10, 10);
+    }
 }
 
 void moveRocket(Rocket* rocket, int elapsedTime) {
+
+    (*rocket).verticalSpeed += (*rocket).g / 200;
+
     // negative because y axis is from top to bottom.
     int baseline = (*rocket).y + (*rocket).heigth - (*rocket).radius;
     baseline -= (*rocket).verticalSpeed;
     if (baseline < GROUND_Y) {
         (*rocket).y = baseline - (*rocket).heigth + (*rocket).radius;
     } else {
+        if ((*rocket).verticalSpeed > 15) {
+            (*rocket).state = "CRASHED";
+        } else {
+            (*rocket).state = "LANDED";
+        }
         (*rocket).y = GROUND_Y - (*rocket).heigth + (*rocket).radius;
     }
 
