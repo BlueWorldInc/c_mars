@@ -1,0 +1,1 @@
+// SDL_RenderDrawTriangle(renderer, 800, 400, 950, 200, 1100, 400);
