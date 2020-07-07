@@ -2,6 +2,8 @@
 
 void SDL_RenderDrawTriangle(SDL_Renderer* renderer, int x0, int y0, int x1, int y1, int x2, int y2);
 void SDL_RenderFillTriangle(SDL_Renderer* renderer, int x0, int y0, int x1, int y1, int x2, int y2);
+Edge initEdge(int x0, int y0, int x1, int y1);
+void SDL_RenderDrawEdge(SDL_Renderer* renderer, Edge edge);
 
 int main(int argc, char *argv[])
 {
@@ -105,7 +107,10 @@ void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
     
     drawRocket(renderer, rocket);
     moveRocket(rocket, elapsedTime);
-    SDL_RenderFillTriangle(renderer, 800, 200, 800, 400, 1000, 300);
+    // SDL_RenderFillTriangle(renderer, 800, 200, 800, 400, 1000, 300);
+    // SDL_RenderFillTriangle(renderer, 800, 350, 800, 400, 1000, 300);
+    // SDL_RenderFillTriangle(renderer, 800, 350, 700, 400, 1000, 300);
+    SDL_RenderFillTriangle(renderer, 800, 350, 700, 100, 1000, 300);
     SDL_RenderPresent(renderer);
 }
 
@@ -176,26 +181,50 @@ void SDL_RenderDrawTriangle(SDL_Renderer* renderer, int x0, int y0, int x1, int 
 
 }
 
+// heavily inspired by https://joshbeam.com/articles/triangle_rasterization/
 void SDL_RenderFillTriangle(SDL_Renderer* renderer, int x0, int y0, int x1, int y1, int x2, int y2) {
-    // SDL_RenderFillTriangle(renderer, 800, 200, 700, 400, 1000, 300);
-    SDL_RenderDrawLine(renderer, x0, y0, x1, y1);
-    SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
-    SDL_RenderDrawLine(renderer, x2, y2, x0, y0);
-
-    // edge 1: 0->1
-    // edge 2: 1->2
-    // edge 3: 2->0
-
-    // find long edge
-    
 
 
-    double slope_right = (x2 - x0) / (double) (y2 - y0);
-    double slope_left = (x1 - x0) / (double) (y1 - y0);
-    double xStart = x0;
-    double xEnd = x0;
+    Edge edge0 = initEdge(x0, y0, x1, y1);
+    Edge edge1 = initEdge(x1, y1, x2, y2);
+    Edge edge2 = initEdge(x2, y2, x0, y0);
+    Edge edges[3] = {edge0, edge1, edge2};
 
-    for (int i = y0; i <= y2; i++) {
+    SDL_RenderDrawEdge(renderer, edges[0]);
+    SDL_RenderDrawEdge(renderer, edges[1]);
+    SDL_RenderDrawEdge(renderer, edges[2]);
+
+    // find tallest edge
+    int tallestEdgeIndex = 0;
+    int tallestEdgeLength = 0;
+    for (int i = 0; i < 3; i++) {
+        if ((edges[i].y1 - edges[i].y0) > tallestEdgeLength) {
+            tallestEdgeLength = abs(edges[i].y0 - edges[i].y1);
+            tallestEdgeIndex = i;
+        }
+    }
+
+    // short edges
+    int shortEdgeIndex_0 = (tallestEdgeIndex + 1) % 3;
+    int shortEdgeIndex_1 = (tallestEdgeIndex + 2) % 3;
+
+    // find top and bot edge
+    int topEdgeIndex = 0;
+    int botEdgeIndex = 0;
+    if (edges[shortEdgeIndex_0].y0 < edges[shortEdgeIndex_1].y0) {
+        topEdgeIndex = shortEdgeIndex_0;
+        botEdgeIndex = shortEdgeIndex_1;
+    } else {
+        topEdgeIndex = shortEdgeIndex_1;
+        botEdgeIndex = shortEdgeIndex_0;
+    }
+
+    double slope_right = (edges[topEdgeIndex].x1 - edges[topEdgeIndex].x0) / (double) (edges[topEdgeIndex].y1 - edges[topEdgeIndex].y0);
+    double slope_left = (edges[tallestEdgeIndex].x1 - edges[tallestEdgeIndex].x0) / (double) (edges[tallestEdgeIndex].y1 - edges[tallestEdgeIndex].y0);
+    double xStart = edges[tallestEdgeIndex].x0;
+    double xEnd = edges[tallestEdgeIndex].x0;
+
+    for (int i = edges[topEdgeIndex].y0; i <=  edges[topEdgeIndex].y1; i++) {
         SDL_RenderDrawLine(renderer, xStart, i, xEnd, i);
         xEnd += slope_right;
         xStart += slope_left;
@@ -204,12 +233,32 @@ void SDL_RenderFillTriangle(SDL_Renderer* renderer, int x0, int y0, int x1, int 
     xEnd -= slope_right;
     xStart -= slope_left;
 
-    slope_right = (x1 - x2) / (double) (y1 - y2);
+    slope_right = (edges[botEdgeIndex].x1 - edges[botEdgeIndex].x0) / (double) (edges[botEdgeIndex].y1 - edges[botEdgeIndex].y0);
 
-    for (int i = y2; i <= y1; i++) {
+    for (int i = edges[topEdgeIndex].y1; i <= edges[botEdgeIndex].y1; i++) {
         SDL_RenderDrawLine(renderer, xStart, i, xEnd, i);
         xEnd += slope_right;
         xStart += slope_left;
     }
 
+}
+
+Edge initEdge(int x0, int y0, int x1, int y1) {
+    Edge e;
+    if (y0 < y1) {
+        e.x0 = x0;
+        e.y0 = y0;
+        e.x1 = x1;
+        e.y1 = y1;
+    } else {
+        e.x0 = x1;
+        e.y0 = y1;
+        e.x1 = x0;
+        e.y1 = y0;
+    }
+    return e;
+}
+
+void SDL_RenderDrawEdge(SDL_Renderer* renderer, Edge edge) {
+    SDL_RenderDrawLine(renderer, edge.x0, edge.y0, edge.x1, edge.y1);
 }

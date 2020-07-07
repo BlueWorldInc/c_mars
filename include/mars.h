@@ -23,6 +23,14 @@ struct Rocket {
     char* state; // can be LANDED, FLYING, CRASHED
 };
 
+typedef struct Edge Edge;
+struct Edge {
+    int x0;
+    int y0;
+    int x1;
+    int y1;
+};
+
 void drawWorld(SDL_Renderer *renderer, Rocket* Rocket, int elapsedTime);
 void drawRocket(SDL_Renderer* renderer, Rocket* rocket);
 void moveRocket(Rocket* rocket, int elapsedTime);
