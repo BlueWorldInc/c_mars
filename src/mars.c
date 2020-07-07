@@ -1,6 +1,6 @@
 #include <mars.h>
 
-
+void SDL_RenderFillTriangle(SDL_Renderer* renderer, int x0, int y0, int x1, int y1, int x2, int y2);
 
 int main(int argc, char *argv[])
 {
@@ -104,6 +104,7 @@ void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
     
     drawRocket(renderer, rocket);
     moveRocket(rocket, elapsedTime);
+    SDL_RenderFillTriangle(renderer, 100, 200, 150, 250, 200, 200);
     SDL_RenderPresent(renderer);
 }
 
@@ -163,4 +164,66 @@ void moveRocket(Rocket* rocket, int elapsedTime) {
         (*rocket).y = GROUND_Y - (*rocket).heigth + (*rocket).radius;
     }
 
+}
+
+
+void SDL_RenderFillTriangle(SDL_Renderer* renderer, int x0, int y0, int x1, int y1, int x2, int y2) {
+    // for the moment assume that x1 is the top angle and x0 and x2 are at the same y;
+    int nodes;
+    int nodeX[3];
+    int pixelX;
+    int pixelY;
+    int i;
+    int j;
+    int swap;
+
+
+    for (pixelY = y1; pixelY < y2; pixelY++) {
+
+        //  Build a list of nodes.
+        nodes = 0; 
+        j = 2;
+        for (i = 0; i < 3; i++) {
+            if (polyY[i] < (double) pixelY && polyY[j] >= (double) pixelY ||  polyY[j] < (double) pixelY && polyY[i] >= (double) pixelY) {
+
+                    nodeX[nodes++] = (int) (polyX[i] + (pixelY - polyY[i]) / (polyY[j] - polyY[i]) * (polyX[j] - polyX[i])); 
+                
+                }
+            j = i;
+        }
+
+        //  Sort the nodes, via a simple “Bubble” sort.
+        i = 0;
+        while (i < nodes - 1) {
+            if (nodeX[i] > nodeX[i+1]) {
+                swap  =nodeX[i]; 
+                nodeX[i] = nodeX[i+1]; 
+                nodeX[i+1] = swap; 
+                if (i) {
+                    i--; 
+                } 
+            } else {
+                i++; 
+            }
+        }
+
+        //  Fill the pixels between node pairs.
+
+        for (i = 0; i < nodes; i += 2) {
+            if (nodeX[i] >= x2) { 
+                break;
+            }
+            if (nodeX[i+1] > x0) {
+                if (nodeX[i] < x0) {
+                    nodeX[i] = x0;
+                }
+                if (nodeX[i+1] > x2) {
+                    nodeX[i+1] = x2;
+                }
+            }
+            for (pixelX = nodeX[i]; pixelX < nodeX[i+1]; pixelX++) {
+                SDL_RenderDrawPoint(renderer, pixelX, pixelY);
+            }
+        }
+    }
 }
