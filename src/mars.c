@@ -4,6 +4,8 @@ void SDL_RenderDrawTriangle(SDL_Renderer* renderer, int x0, int y0, int x1, int 
 void SDL_RenderFillTriangle(SDL_Renderer* renderer, int x0, int y0, int x1, int y1, int x2, int y2);
 Edge initEdge(int x0, int y0, int x1, int y1);
 void SDL_RenderDrawEdge(SDL_Renderer* renderer, Edge edge);
+void DrawSpan(SDL_Renderer* renderer, Span span, int y);
+void DrawSpansBetweenEdges(SDL_Renderer* renderer, Edge edge1, Edge edge2);
 
 int main(int argc, char *argv[])
 {
@@ -110,7 +112,7 @@ void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
     // SDL_RenderFillTriangle(renderer, 800, 200, 800, 400, 1000, 300);
     // SDL_RenderFillTriangle(renderer, 800, 350, 800, 400, 1000, 300);
     // SDL_RenderFillTriangle(renderer, 800, 350, 700, 400, 1000, 300);
-    SDL_RenderFillTriangle(renderer, 800, 350, 700, 100, 1000, 300);
+    // SDL_RenderFillTriangle(renderer, 800, 350, 700, 100, 1000, 300);
     SDL_RenderPresent(renderer);
 }
 
@@ -149,6 +151,15 @@ void drawRocket(SDL_Renderer* renderer, Rocket* rocket) {
         SDL_RenderDrawRect(renderer, &robot_03);
         SDL_Ellipse(renderer, (*rocket).x - 90, (*rocket).y + 50, 10, 10);
         SDL_Ellipse(renderer, (*rocket).x - 50, (*rocket).y + 50, 10, 10);
+    } else if (strcmp((*rocket).state, "CRASHED") == 0) {
+        // Explosion
+        SDL_RenderFillTriangle(renderer, (*rocket).x + 10, (*rocket).y + 30, (*rocket).x - 30, (*rocket).y + 50, (*rocket).x + 30, (*rocket).y + 50);
+        SDL_RenderFillTriangle(renderer, (*rocket).x + 100, (*rocket).y + 30, (*rocket).x + 30, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 50);
+        SDL_RenderFillTriangle(renderer, (*rocket).x - 100, (*rocket).y + 30, (*rocket).x + 30, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 50);
+        SDL_RenderFillTriangle(renderer, (*rocket).x - 130, (*rocket).y + 90, (*rocket).x + 30, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 50);
+        SDL_RenderFillTriangle(renderer, (*rocket).x + 200, (*rocket).y + 90, (*rocket).x + 50, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 50);
+        SDL_RenderFillTriangle(renderer, (*rocket).x + 100, (*rocket).y + 50, (*rocket).x - 50, (*rocket).y + 60, (*rocket).x - 30, (*rocket).y + 100);
+
     }
 }
 
@@ -165,7 +176,7 @@ void moveRocket(Rocket* rocket, int elapsedTime) {
         if ((*rocket).verticalSpeed > 15) {
             (*rocket).state = "CRASHED";
         } else {
-            (*rocket).state = "LANDED";
+            (*rocket).state = "CRASHED";
         }
         (*rocket).y = GROUND_Y - (*rocket).heigth + (*rocket).radius;
     }
@@ -208,38 +219,8 @@ void SDL_RenderFillTriangle(SDL_Renderer* renderer, int x0, int y0, int x1, int 
     int shortEdgeIndex_0 = (tallestEdgeIndex + 1) % 3;
     int shortEdgeIndex_1 = (tallestEdgeIndex + 2) % 3;
 
-    // find top and bot edge
-    int topEdgeIndex = 0;
-    int botEdgeIndex = 0;
-    if (edges[shortEdgeIndex_0].y0 < edges[shortEdgeIndex_1].y0) {
-        topEdgeIndex = shortEdgeIndex_0;
-        botEdgeIndex = shortEdgeIndex_1;
-    } else {
-        topEdgeIndex = shortEdgeIndex_1;
-        botEdgeIndex = shortEdgeIndex_0;
-    }
-
-    double slope_right = (edges[topEdgeIndex].x1 - edges[topEdgeIndex].x0) / (double) (edges[topEdgeIndex].y1 - edges[topEdgeIndex].y0);
-    double slope_left = (edges[tallestEdgeIndex].x1 - edges[tallestEdgeIndex].x0) / (double) (edges[tallestEdgeIndex].y1 - edges[tallestEdgeIndex].y0);
-    double xStart = edges[tallestEdgeIndex].x0;
-    double xEnd = edges[tallestEdgeIndex].x0;
-
-    for (int i = edges[topEdgeIndex].y0; i <=  edges[topEdgeIndex].y1; i++) {
-        SDL_RenderDrawLine(renderer, xStart, i, xEnd, i);
-        xEnd += slope_right;
-        xStart += slope_left;
-    }
-
-    xEnd -= slope_right;
-    xStart -= slope_left;
-
-    slope_right = (edges[botEdgeIndex].x1 - edges[botEdgeIndex].x0) / (double) (edges[botEdgeIndex].y1 - edges[botEdgeIndex].y0);
-
-    for (int i = edges[topEdgeIndex].y1; i <= edges[botEdgeIndex].y1; i++) {
-        SDL_RenderDrawLine(renderer, xStart, i, xEnd, i);
-        xEnd += slope_right;
-        xStart += slope_left;
-    }
+    DrawSpansBetweenEdges(renderer, edges[tallestEdgeIndex], edges[shortEdgeIndex_0]);
+    DrawSpansBetweenEdges(renderer, edges[tallestEdgeIndex], edges[shortEdgeIndex_1]);
 
 }
 
@@ -259,6 +240,45 @@ Edge initEdge(int x0, int y0, int x1, int y1) {
     return e;
 }
 
+Span initSpan(int x0, int x1) {
+    Span s;
+    if (x0 < x1) {
+        s.x0 = x0;
+        s.x1 = x1;
+    } else {
+        s.x0 = x1;
+        s.x1 = x0;
+    }
+    return s;
+}
+
 void SDL_RenderDrawEdge(SDL_Renderer* renderer, Edge edge) {
     SDL_RenderDrawLine(renderer, edge.x0, edge.y0, edge.x1, edge.y1);
+}
+
+void DrawSpansBetweenEdges(SDL_Renderer* renderer, Edge edge1, Edge edge2) {
+    double edge1YDiff = (double) (edge1.y1 - edge1.y0);
+    double edge2YDiff = (double) (edge2.y1 - edge2.y0);
+    
+    if (edge1YDiff == 0 || edge2YDiff == 0) {
+        return;
+    }
+
+    double edge1XDiff = (double) (edge1.x1 - edge1.x0);
+    double edge2XDiff = (double) (edge2.x1 - edge2.x0);
+    double factor1 = (double) (edge2.y0 - edge1.y0) / edge1YDiff;
+    double factorStep1 = 1.0 / edge1YDiff;
+    double factor2 = 0.0;
+    double factorStep2 = 1.0 / edge2YDiff;
+
+    for(int i = edge2.y0; i < edge2.y1; i++) {
+        Span span = initSpan(edge1.x0 + (int) (edge1XDiff * factor1), edge2.x0 + (int) (edge2XDiff * factor2));
+        DrawSpan(renderer, span, i);
+        factor1 += factorStep1;
+        factor2 += factorStep2;
+    }
+}
+
+void DrawSpan(SDL_Renderer* renderer, Span span, int y) {
+    SDL_RenderDrawLine(renderer, span.x0, y, span.x1, y);
 }

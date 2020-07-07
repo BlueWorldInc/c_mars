@@ -31,6 +31,12 @@ struct Edge {
     int y1;
 };
 
+typedef struct Span Span;
+struct Span {
+    int x0;
+    int x1;
+};
+
 void drawWorld(SDL_Renderer *renderer, Rocket* Rocket, int elapsedTime);
 void drawRocket(SDL_Renderer* renderer, Rocket* rocket);
 void moveRocket(Rocket* rocket, int elapsedTime);
