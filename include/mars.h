@@ -20,6 +20,8 @@ struct Rocket {
     double verticalSpeed;
     double horizontalSpeed;
     double g;
+    int angle;
+    int thrustPower;
     char* state; // can be LANDED, FLYING, CRASHED
 };
 
