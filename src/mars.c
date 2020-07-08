@@ -153,7 +153,11 @@ void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
     // printf("h: %d\n", dst.h);
     printf("rocket y: %d\n", (*rocket).y);
 
-    SDL_RenderCopy(renderer, texture, NULL, &dst);
+    SDL_Point center = {0, 0};
+
+    // SDL_RenderCopy(renderer, texture, NULL, &dst);
+    // rotation
+    SDL_RenderCopyEx(renderer, texture, NULL, &dst, 180, &center, SDL_FLIP_NONE);
 
     // transparence
     // SDL_SetRenderDrawColor(renderer, 255, 128, 0, 128);
