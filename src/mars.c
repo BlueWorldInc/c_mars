@@ -59,13 +59,15 @@ int main(int argc, char *argv[])
 
         Rocket* rocket = NULL;
         rocket = malloc(sizeof(*rocket));
-        (*rocket).x = SCREEN_WIDTH / 2;
+        // (*rocket).x = SCREEN_WIDTH / 2;
+        (*rocket).x = 50;
         (*rocket).y = SCREEN_HEIGHT / 2;
+        (*rocket).y = 30;
         (*rocket).radius = 30;
-        // (*rocket).verticalSpeed = - 2.0;
+        (*rocket).verticalSpeed = - 2.0;
         (*rocket).heigth = 90;
-        // (*rocket).g = -3.711;
-        (*rocket).angle = 0;
+        (*rocket).g = -3.711;
+        (*rocket).angle = 30;
         (*rocket).thrustPower = 1;
         (*rocket).state = "FLYING";
 
@@ -85,14 +87,8 @@ int main(int argc, char *argv[])
             }
 
             switch (event.type) {
-                // case SDL_KEYDOWN:
-                    // run = SDL_FALSE;
-                    // break;
                 case SDL_KEYDOWN:
                     switch (event.key.keysym.sym) {
-                        case SDLK_ESCAPE:
-                            run = SDL_FALSE;
-                            break;
                         case SDLK_a:
                             (*rocket).thrustPower = 1;
                             break;
@@ -104,6 +100,12 @@ int main(int argc, char *argv[])
                             break;
                         case SDLK_r:
                             (*rocket).thrustPower = 4;
+                            break;
+                        case SDLK_ESCAPE:
+                            run = SDL_FALSE;
+                            break;
+                        default:
+                            run = SDL_FALSE;
                             break;
                     }
             }
@@ -127,57 +129,89 @@ void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
 
     // draw ground
     SDL_RenderDrawLine(renderer, 0, GROUND_Y, SCREEN_WIDTH, GROUND_Y);
+
+    // texture
+    SDL_Texture* texture;
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 100, 100);
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    // printf("texture: %p\n", texture);
+    // SDL_SetRenderDrawColor(renderer, 150, 0, 150, 255);
     
+    SDL_SetRenderTarget(renderer, texture);
     drawRocket(renderer, rocket);
     moveRocket(rocket, elapsedTime);
+    SDL_Rect rect = {10, 10, 50, 50};
+    // SDL_RenderFillRect(renderer, &rect);
+    // SDL_RenderDrawRect(renderer, &rect);
+    // SDL_RenderDrawLine(renderer, 10, 10, 100, 200);
+    // printf("%d ||| %d\n", (*rocket).x, (*rocket).y);
+
+    SDL_SetRenderTarget(renderer, NULL);
+    SDL_Rect dst = {900, 600 + (*rocket).y, 500, 500};
+    SDL_QueryTexture(texture, NULL, NULL, &dst.w, &dst.h);
+    // printf("w: %d\n", dst.w);
+    // printf("h: %d\n", dst.h);
+    printf("rocket y: %d\n", (*rocket).y);
+
+    SDL_RenderCopy(renderer, texture, NULL, &dst);
+
+    // transparence
+    // SDL_SetRenderDrawColor(renderer, 255, 128, 0, 128);
+    // SDL_Rect rect = {500, 750, 100, 100};
+    // SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_ADD);
+    // SDL_RenderDrawRect(renderer, &rect);
+
+    // drawRocket(renderer, rocket);
+    // moveRocket(rocket, elapsedTime);
     SDL_RenderPresent(renderer);
 }
 
 void drawRocket(SDL_Renderer* renderer, Rocket* rocket) {
     if (strcmp((*rocket).state, "FLYING") == 0) {
+        // replaced (*rocket).y by 30
         drawFlame(renderer, rocket);
-        SDL_Ellipse(renderer, (*rocket).x, (*rocket).y, (*rocket).radius, (*rocket).radius);
+        SDL_Ellipse(renderer, (*rocket).x, 30, (*rocket).radius, (*rocket).radius);
         // legs
-        SDL_RenderDrawLine(renderer, (*rocket).x - 10, (*rocket).y + 30, (*rocket).x - 30, (*rocket).y + 50);
-        SDL_RenderDrawLine(renderer, (*rocket).x + 10, (*rocket).y + 30, (*rocket).x + 30, (*rocket).y + 50);
+        SDL_RenderDrawLine(renderer, (*rocket).x - 10, 30 + 30, (*rocket).x - 30, 30 + 50);
+        SDL_RenderDrawLine(renderer, (*rocket).x + 10, 30 + 30, (*rocket).x + 30, 30 + 50);
 
-        SDL_RenderDrawLine(renderer, (*rocket).x - 30, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 60);
-        SDL_RenderDrawLine(renderer, (*rocket).x + 30, (*rocket).y + 50, (*rocket).x + 30, (*rocket).y + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x - 30, 30 + 50, (*rocket).x - 30, 30 + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x + 30, 30 + 50, (*rocket).x + 30, 30 + 60);
         
-        SDL_RenderDrawLine(renderer, (*rocket).x + 30, (*rocket).y + 60, (*rocket).x + 50, (*rocket).y + 60);
-        SDL_RenderDrawLine(renderer, (*rocket).x - 30, (*rocket).y + 60, (*rocket).x - 50, (*rocket).y + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x + 30, 30 + 60, (*rocket).x + 50, 30 + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x - 30, 30 + 60, (*rocket).x - 50, 30 + 60);
 
     } else if (strcmp((*rocket).state, "LANDED") == 0) {
-        SDL_Ellipse(renderer, (*rocket).x, (*rocket).y, (*rocket).radius, (*rocket).radius);
+        SDL_Ellipse(renderer, (*rocket).x, 30, (*rocket).radius, (*rocket).radius);
         // legs
-        SDL_RenderDrawLine(renderer, (*rocket).x - 10, (*rocket).y + 30, (*rocket).x - 30, (*rocket).y + 50);
-        SDL_RenderDrawLine(renderer, (*rocket).x + 10, (*rocket).y + 30, (*rocket).x + 30, (*rocket).y + 50);
+        SDL_RenderDrawLine(renderer, (*rocket).x - 10, 30 + 30, (*rocket).x - 30, 30 + 50);
+        SDL_RenderDrawLine(renderer, (*rocket).x + 10, 30 + 30, (*rocket).x + 30, 30 + 50);
 
-        SDL_RenderDrawLine(renderer, (*rocket).x - 30, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 60);
-        SDL_RenderDrawLine(renderer, (*rocket).x + 30, (*rocket).y + 50, (*rocket).x + 30, (*rocket).y + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x - 30, 30 + 50, (*rocket).x - 30, 30 + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x + 30, 30 + 50, (*rocket).x + 30, 30 + 60);
         
-        SDL_RenderDrawLine(renderer, (*rocket).x + 30, (*rocket).y + 60, (*rocket).x + 50, (*rocket).y + 60);
-        SDL_RenderDrawLine(renderer, (*rocket).x - 30, (*rocket).y + 60, (*rocket).x - 50, (*rocket).y + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x + 30, 30 + 60, (*rocket).x + 50, 30 + 60);
+        SDL_RenderDrawLine(renderer, (*rocket).x - 30, 30 + 60, (*rocket).x - 50, 30 + 60);
 
         // robot
-        SDL_Rect robot_00 = {(*rocket).x - 90, (*rocket).y + 20, 40, 30};
+        SDL_Rect robot_00 = {(*rocket).x - 90, 30 + 20, 40, 30};
         SDL_RenderDrawRect(renderer, &robot_00);
-        SDL_Rect robot_01 = {(*rocket).x - 70, (*rocket).y + 10, 10, 10};
+        SDL_Rect robot_01 = {(*rocket).x - 70, 30 + 10, 10, 10};
         SDL_RenderDrawRect(renderer, &robot_01);
-        SDL_Rect robot_02 = {(*rocket).x - 80, (*rocket).y + 5, 20, 5};
+        SDL_Rect robot_02 = {(*rocket).x - 80, 30 + 5, 20, 5};
         SDL_RenderDrawRect(renderer, &robot_02);
-        SDL_Rect robot_03 = {(*rocket).x - 55, (*rocket).y - 50, 5, 70};
+        SDL_Rect robot_03 = {(*rocket).x - 55, 30 - 50, 5, 70};
         SDL_RenderDrawRect(renderer, &robot_03);
-        SDL_Ellipse(renderer, (*rocket).x - 90, (*rocket).y + 50, 10, 10);
-        SDL_Ellipse(renderer, (*rocket).x - 50, (*rocket).y + 50, 10, 10);
+        SDL_Ellipse(renderer, (*rocket).x - 90, 30 + 50, 10, 10);
+        SDL_Ellipse(renderer, (*rocket).x - 50, 30 + 50, 10, 10);
     } else if (strcmp((*rocket).state, "CRASHED") == 0) {
         // Explosion
-        SDL_RenderFillTriangle(renderer, (*rocket).x + 10, (*rocket).y + 30, (*rocket).x - 30, (*rocket).y + 50, (*rocket).x + 30, (*rocket).y + 50);
-        SDL_RenderFillTriangle(renderer, (*rocket).x + 100, (*rocket).y + 30, (*rocket).x + 30, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 50);
-        SDL_RenderFillTriangle(renderer, (*rocket).x - 100, (*rocket).y + 30, (*rocket).x + 30, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 50);
-        SDL_RenderFillTriangle(renderer, (*rocket).x - 130, (*rocket).y + 90, (*rocket).x + 30, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 50);
-        SDL_RenderFillTriangle(renderer, (*rocket).x + 200, (*rocket).y + 90, (*rocket).x + 50, (*rocket).y + 50, (*rocket).x - 30, (*rocket).y + 50);
-        SDL_RenderFillTriangle(renderer, (*rocket).x + 100, (*rocket).y + 50, (*rocket).x - 50, (*rocket).y + 60, (*rocket).x - 30, (*rocket).y + 100);
+        SDL_RenderFillTriangle(renderer, (*rocket).x + 10, 30 + 30, (*rocket).x - 30, 30 + 50, (*rocket).x + 30, 30 + 50);
+        SDL_RenderFillTriangle(renderer, (*rocket).x + 100, 30 + 30, (*rocket).x + 30, 30 + 50, (*rocket).x - 30, 30 + 50);
+        SDL_RenderFillTriangle(renderer, (*rocket).x - 100, 30 + 30, (*rocket).x + 30, 30 + 50, (*rocket).x - 30, 30 + 50);
+        SDL_RenderFillTriangle(renderer, (*rocket).x - 130, 30 + 90, (*rocket).x + 30, 30 + 50, (*rocket).x - 30, 30 + 50);
+        SDL_RenderFillTriangle(renderer, (*rocket).x + 200, 30 + 90, (*rocket).x + 50, 30 + 50, (*rocket).x - 30, 30 + 50);
+        SDL_RenderFillTriangle(renderer, (*rocket).x + 100, 30 + 50, (*rocket).x - 50, 30 + 60, (*rocket).x - 30, 30 + 100);
 
     }
 }
@@ -185,19 +219,19 @@ void drawRocket(SDL_Renderer* renderer, Rocket* rocket) {
 void drawFlame(SDL_Renderer* renderer, const Rocket* rocket) {
 
     if ((*rocket).thrustPower == 1) {
-        SDL_Ellipse(renderer, (*rocket).x, (*rocket).y + 40, (*rocket).radius / 4, (*rocket).radius / 3);
+        SDL_Ellipse(renderer, (*rocket).x, 30 + 40, (*rocket).radius / 4, (*rocket).radius / 3);
     }
     if ((*rocket).thrustPower <= 3) {
-        SDL_Ellipse(renderer, (*rocket).x, (*rocket).y + 42, (*rocket).radius / 4, (*rocket).radius / 2.5);
+        SDL_Ellipse(renderer, (*rocket).x, 30 + 42, (*rocket).radius / 4, (*rocket).radius / 2.5);
     }
     if ((*rocket).thrustPower >= 2) {
-        SDL_Ellipse(renderer, (*rocket).x, (*rocket).y + 45, (*rocket).radius / 4, (*rocket).radius / 2);
+        SDL_Ellipse(renderer, (*rocket).x, 30 + 45, (*rocket).radius / 4, (*rocket).radius / 2);
     }
     if ((*rocket).thrustPower >= 3) {
-        SDL_Ellipse(renderer, (*rocket).x, (*rocket).y + 53, (*rocket).radius / 4, (*rocket).radius / 1.3);
+        SDL_Ellipse(renderer, (*rocket).x, 30 + 53, (*rocket).radius / 4, (*rocket).radius / 1.3);
     }
     if ((*rocket).thrustPower >= 4) {
-        SDL_Ellipse(renderer, (*rocket).x, (*rocket).y + 60, (*rocket).radius / 4, (*rocket).radius / 1);
+        SDL_Ellipse(renderer, (*rocket).x, 30 + 60, (*rocket).radius / 4, (*rocket).radius / 1);
     }
 }
 
@@ -208,7 +242,7 @@ void moveRocket(Rocket* rocket, int elapsedTime) {
     // negative because y axis is from top to bottom.
     int baseline = (*rocket).y + (*rocket).heigth - (*rocket).radius;
     baseline -= (*rocket).verticalSpeed;
-    if (baseline < GROUND_Y) {
+    if (baseline < GROUND_Y - 630) {
         (*rocket).y = baseline - (*rocket).heigth + (*rocket).radius;
     } else {
         if ((*rocket).verticalSpeed > 15) {
@@ -216,8 +250,10 @@ void moveRocket(Rocket* rocket, int elapsedTime) {
         } else {
             (*rocket).state = "CRASHED";
         }
-        (*rocket).y = GROUND_Y - (*rocket).heigth + (*rocket).radius;
+        (*rocket).y = GROUND_Y - 630 - (*rocket).heigth + (*rocket).radius;
     }
+
+    printf("rocket y: %d ---\n", (*rocket).y);
 
 }
 
