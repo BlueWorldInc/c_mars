@@ -1,0 +1,2 @@
+I tried to make the rocket rotate and it worked but the image quality was kind of off. So I tried to use a bmp image instead and it maked the matter worse.
+When the rocket is not a in a rotate position the image quality is good but when it rotate their is "holes" in the image.

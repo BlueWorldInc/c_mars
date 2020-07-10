@@ -1,6 +1,7 @@
 #include <mars.h>
 
 void drawFlame(SDL_Renderer* renderer, const Rocket* rocket);
+void drawImage(SDL_Renderer* renderer, Rocket* rocket);
 
 int main(int argc, char *argv[])
 {
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
         (*rocket).verticalSpeed = - 2.0;
         (*rocket).heigth = 90;
         (*rocket).g = -3.711;
-        (*rocket).angle = 30;
+        (*rocket).angle = 0;
         (*rocket).thrustPower = 1;
         (*rocket).state = "FLYING";
         (*rocket).totalSize = 600;
@@ -134,6 +135,7 @@ void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
     
     SDL_SetRenderTarget(renderer, rocketTexture);
     drawRocket(renderer, rocket);
+    // drawImage(renderer, rocket);
     // moveRocket(rocket, elapsedTime);
     SDL_Rect rect = {10, 10, 50, 50};
     // SDL_RenderFillRect(renderer, &rect);
@@ -152,7 +154,7 @@ void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
 
     // SDL_RenderCopy(renderer, texture, NULL, &dst);
     // rotation
-    SDL_RenderCopyEx(renderer, rocketTexture, NULL, &dst, (*rocket).angle++, &center, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer, rocketTexture, NULL, &dst, (*rocket).angle, &center, SDL_FLIP_NONE);
 
     // transparence
     // SDL_SetRenderDrawColor(renderer, 255, 128, 0, 128);
@@ -163,6 +165,25 @@ void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
     // drawRocket(renderer, rocket);
     // moveRocket(rocket, elapsedTime);
     SDL_RenderPresent(renderer);
+}
+
+void drawImage(SDL_Renderer* renderer, Rocket* rocket) {
+    SDL_Surface *tmp = NULL; 
+    SDL_Texture *texture = NULL;
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    tmp = SDL_LoadBMP("./res/rocket2.bmp");
+    SDL_SetColorKey(tmp, SDL_TRUE, SDL_MapRGB(tmp->format, 0, 0, 0));
+    if(NULL == tmp)
+    {
+        fprintf(stderr, "Erreur SDL_LoadBMP : %s", SDL_GetError());
+    }
+    SDL_Rect dst = {100, 100 + (*rocket).y, 100, 500};
+    texture = SDL_CreateTextureFromSurface(renderer, tmp);
+    SDL_QueryTexture(texture, NULL, NULL, &dst.w, &dst.h);
+    // SDL_RenderCopy(renderer, texture, NULL, &dst);
+    SDL_Point center = {50, 30};
+        SDL_RenderCopyEx(renderer, texture, NULL, &dst, (*rocket).angle++, &center, SDL_FLIP_NONE);
+
 }
 
 void drawRocket(SDL_Renderer* renderer, Rocket* rocket) {
