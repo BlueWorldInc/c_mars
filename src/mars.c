@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
         rocket = malloc(sizeof(*rocket));
         // (*rocket).x = SCREEN_WIDTH / 2;
         (*rocket).x = 50;
-        (*rocket).y = SCREEN_HEIGHT / 2;
+        // (*rocket).y = SCREEN_HEIGHT / 2;
         (*rocket).y = 30;
         (*rocket).radius = 30;
         (*rocket).verticalSpeed = - 2.0;
@@ -64,6 +64,7 @@ int main(int argc, char *argv[])
         (*rocket).angle = 30;
         (*rocket).thrustPower = 1;
         (*rocket).state = "FLYING";
+        (*rocket).totalSize = 600;
 
         actualTime = SDL_GetTicks();
         lastTime = actualTime;
@@ -125,15 +126,15 @@ void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
     SDL_RenderDrawLine(renderer, 0, GROUND_Y, SCREEN_WIDTH, GROUND_Y);
 
     // texture
-    SDL_Texture* texture;
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 100, 100);
-    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    SDL_Texture* rocketTexture;
+    rocketTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, (*rocket).totalSize, (*rocket).totalSize);
+    SDL_SetTextureBlendMode(rocketTexture, SDL_BLENDMODE_BLEND);
     // printf("texture: %p\n", texture);
     // SDL_SetRenderDrawColor(renderer, 150, 0, 150, 255);
     
-    SDL_SetRenderTarget(renderer, texture);
+    SDL_SetRenderTarget(renderer, rocketTexture);
     drawRocket(renderer, rocket);
-    moveRocket(rocket, elapsedTime);
+    // moveRocket(rocket, elapsedTime);
     SDL_Rect rect = {10, 10, 50, 50};
     // SDL_RenderFillRect(renderer, &rect);
     // SDL_RenderDrawRect(renderer, &rect);
@@ -142,16 +143,16 @@ void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
 
     SDL_SetRenderTarget(renderer, NULL);
     SDL_Rect dst = {900, 600 + (*rocket).y, 500, 500};
-    SDL_QueryTexture(texture, NULL, NULL, &dst.w, &dst.h);
+    SDL_QueryTexture(rocketTexture, NULL, NULL, &dst.w, &dst.h);
     // printf("w: %d\n", dst.w);
     // printf("h: %d\n", dst.h);
     printf("rocket y: %d\n", (*rocket).y);
 
-    SDL_Point center = {0, 0};
+    SDL_Point center = {50, 30};
 
     // SDL_RenderCopy(renderer, texture, NULL, &dst);
     // rotation
-    SDL_RenderCopyEx(renderer, texture, NULL, &dst, 180, &center, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer, rocketTexture, NULL, &dst, (*rocket).angle++, &center, SDL_FLIP_NONE);
 
     // transparence
     // SDL_SetRenderDrawColor(renderer, 255, 128, 0, 128);
@@ -246,7 +247,7 @@ void moveRocket(Rocket* rocket, int elapsedTime) {
         if ((*rocket).verticalSpeed > 15) {
             (*rocket).state = "CRASHED";
         } else {
-            (*rocket).state = "CRASHED";
+            (*rocket).state = "LANDED";
         }
         (*rocket).y = GROUND_Y - 630 - (*rocket).heigth + (*rocket).radius;
     }

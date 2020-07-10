@@ -18,11 +18,14 @@ struct Rocket {
     int y;
     int radius;
     int heigth;
+    int center;
+    int baseline;
     double verticalSpeed;
     double horizontalSpeed;
     double g;
     int angle;
     int thrustPower;
+    int totalSize;
     char* state; // can be LANDED, FLYING, CRASHED
 };
 

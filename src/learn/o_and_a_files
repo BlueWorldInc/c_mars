@@ -1,0 +1,4 @@
+Build file2.c, copy object file file2.o to libs directory and archive it to static library libmylib.a:
+
+$ gcc -c file2.c // create a .o file
+$ ar rcs libmylib.a file2.o // create a .a file
