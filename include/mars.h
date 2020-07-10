@@ -4,6 +4,7 @@
 #include <time.h>
 #include <math.h>
 #include <sdl_circle.h>
+#include <sdl_triangle.h>
 #include <SDL2/SDL.h>
 
 #define SCREEN_WIDTH 1920
@@ -23,20 +24,6 @@ struct Rocket {
     int angle;
     int thrustPower;
     char* state; // can be LANDED, FLYING, CRASHED
-};
-
-typedef struct Edge Edge;
-struct Edge {
-    int x0;
-    int y0;
-    int x1;
-    int y1;
-};
-
-typedef struct Span Span;
-struct Span {
-    int x0;
-    int x1;
 };
 
 void drawWorld(SDL_Renderer *renderer, Rocket* Rocket, int elapsedTime);
