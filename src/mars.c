@@ -97,6 +97,12 @@ int main(int argc, char *argv[])
                         case SDLK_r:
                             (*rocket).thrustPower = 4;
                             break;
+                        case SDLK_q:
+                            (*rocket).angle += 15;
+                            break;
+                        case SDLK_d:
+                            (*rocket).angle -= 15;
+                            break;
                         case SDLK_ESCAPE:
                             run = SDL_FALSE;
                             break;
@@ -144,11 +150,11 @@ void drawWorld(SDL_Renderer *renderer, Rocket* rocket, int elapsedTime) {
     // printf("%d ||| %d\n", (*rocket).x, (*rocket).y);
 
     SDL_SetRenderTarget(renderer, NULL);
-    SDL_Rect dst = {900, 600 + (*rocket).y, 500, 500};
+    SDL_Rect dst = {900, 100 + (*rocket).y, 500, 500};
     SDL_QueryTexture(rocketTexture, NULL, NULL, &dst.w, &dst.h);
     // printf("w: %d\n", dst.w);
     // printf("h: %d\n", dst.h);
-    printf("rocket y: %d\n", (*rocket).y);
+    // printf("rocket y: %d\n", (*rocket).y);
 
     SDL_Point center = {50, 30};
 
@@ -258,6 +264,7 @@ void drawFlame(SDL_Renderer* renderer, const Rocket* rocket) {
 void moveRocket(Rocket* rocket, int elapsedTime) {
 
     (*rocket).verticalSpeed += (*rocket).g / 200;
+    (*rocket).verticalSpeed += (*rocket).thrustPower / 200;
 
     // negative because y axis is from top to bottom.
     int baseline = (*rocket).y + (*rocket).heigth - (*rocket).radius;
